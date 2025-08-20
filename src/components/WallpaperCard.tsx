@@ -54,8 +54,8 @@ const WallpaperCard = ({
   return (
     <div 
       className={cn(
-        "group relative bg-card rounded-2xl overflow-hidden cursor-pointer neon-border magnetic-hover tilt-card",
-        "border border-border/30 transition-all duration-500",
+        "group relative bg-card rounded-lg overflow-hidden hover-scale cursor-pointer",
+        "border border-border/50 hover:border-primary/50 transition-all duration-300",
         className
       )}
       style={style}
@@ -73,38 +73,38 @@ const WallpaperCard = ({
         
         {/* Premium Badge */}
         {isPremium && (
-          <div className="absolute top-4 left-4 premium-card px-3 py-1.5 rounded-full text-xs font-semibold flex items-center z-10 neon-border">
-            <Crown className="h-3 w-3 mr-1.5" />
+          <div className="absolute top-3 left-3 premium-card px-2 py-1 rounded-full text-xs font-medium flex items-center">
+            <Crown className="h-3 w-3 mr-1" />
             Premium
           </div>
         )}
 
         {/* Category Badge */}
-        <div className="absolute top-4 right-4 glass px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-sm z-10">
+        <div className="absolute top-3 right-3 glass px-2 py-1 rounded-full text-xs font-medium">
           {category}
         </div>
 
         {/* Hover Overlay */}
         <div 
           className={cn(
-            "absolute inset-0 image-overlay transition-all duration-500 backdrop-blur-[2px]",
+            "absolute inset-0 image-overlay transition-opacity duration-300",
             isHovered ? "opacity-100" : "opacity-0"
           )}
         >
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="flex space-x-3 transform scale-75 group-hover:scale-100 transition-transform duration-300">
+            <div className="flex space-x-2">
               <Button
                 size="sm"
                 variant="secondary"
-                className="glass hover:bg-primary hover:text-primary-foreground hover:scale-110 transition-all duration-300 backdrop-blur-md ripple"
+                className="glass hover:bg-primary hover:text-primary-foreground"
                 onClick={handleDownload}
               >
                 <Download className="h-4 w-4" />
               </Button>
               <Button
                 size="sm"
-                variant="secondary"  
-                className="glass hover:bg-primary hover:text-primary-foreground hover:scale-110 transition-all duration-300 backdrop-blur-md ripple"
+                variant="secondary"
+                className="glass hover:bg-primary hover:text-primary-foreground"
                 onClick={handleShare}
               >
                 <Share className="h-4 w-4" />
@@ -112,45 +112,40 @@ const WallpaperCard = ({
             </div>
           </div>
 
-          {/* Enhanced Stats */}
+          {/* Stats */}
           <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-white">
-            <div className="flex items-center space-x-4 text-sm backdrop-blur-sm bg-black/20 rounded-full px-3 py-1.5">
-              <div className="flex items-center space-x-1.5">
+            <div className="flex items-center space-x-3 text-sm">
+              <div className="flex items-center space-x-1">
                 <Eye className="h-4 w-4" />
-                <span className="font-medium">{downloads.toLocaleString()}</span>
+                <span>{downloads.toLocaleString()}</span>
               </div>
-              <div className="flex items-center space-x-1.5">
-                <Heart className={cn("h-4 w-4 transition-colors", isLiked && "fill-current text-red-400")} />
-                <span className="font-medium">{(likes + (isLiked ? 1 : 0)).toLocaleString()}</span>
+              <div className="flex items-center space-x-1">
+                <Heart className={cn("h-4 w-4", isLiked && "fill-current text-red-500")} />
+                <span>{(likes + (isLiked ? 1 : 0)).toLocaleString()}</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Enhanced Card Footer */}
-      <div className="p-5 bg-gradient-to-t from-surface-elevated to-surface">
+      {/* Card Footer */}
+      <div className="p-4">
         <div className="flex items-center justify-between">
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-base mb-1.5 line-clamp-1 group-hover:text-primary transition-colors">
-              {title}
-            </h3>
-            <p className="text-sm text-muted-foreground flex items-center">
-              <span className="w-2 h-2 rounded-full bg-primary/60 mr-2"></span>
-              {resolution}
-            </p>
+          <div>
+            <h3 className="font-medium text-sm mb-1 line-clamp-1">{title}</h3>
+            <p className="text-xs text-muted-foreground">{resolution}</p>
           </div>
           
           <Button
             size="sm"
             variant="ghost"
             className={cn(
-              "h-9 w-9 p-0 ml-3 hover:scale-110 transition-all duration-300 spotlight",
-              isLiked ? "text-red-400 hover:text-red-500" : "hover:text-primary"
+              "h-8 w-8 p-0",
+              isLiked && "text-red-500 hover:text-red-600"
             )}
             onClick={handleLike}
           >
-            <Heart className={cn("h-5 w-5 transition-all", isLiked && "fill-current scale-110")} />
+            <Heart className={cn("h-4 w-4", isLiked && "fill-current")} />
           </Button>
         </div>
       </div>
