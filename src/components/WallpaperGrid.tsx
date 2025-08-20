@@ -105,40 +105,57 @@ const WallpaperGrid = ({
   const displayWallpapers = limit ? mockWallpapers.slice(0, limit) : mockWallpapers;
 
   return (
-    <section className="py-16">
-      <div className="container mx-auto px-4">
-        {/* Section Header */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+    <section className="py-20 relative overflow-hidden">
+      {/* Cosmic Background Pattern */}
+      <div className="absolute inset-0 cosmic-bg opacity-60" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/50 to-background" />
+      
+      <div className="container mx-auto px-4 relative z-10">
+        {/* Enhanced Section Header */}
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-hero bg-clip-text text-transparent scroll-reveal">
             {title}
           </h2>
           {subtitle && (
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed scroll-reveal stagger-1">
               {subtitle}
             </p>
           )}
         </div>
 
-        {/* Wallpaper Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
+        {/* Enhanced Wallpaper Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mb-16">
           {displayWallpapers.map((wallpaper, index) => (
             <WallpaperCard
               key={wallpaper.id}
               {...wallpaper}
-              className="animate-fade-in"
-              style={{ animationDelay: `${index * 0.1}s` }}
+              className="animate-fade-in scroll-reveal"
+              style={{ 
+                animationDelay: `${index * 0.1}s`,
+                animationFillMode: 'both'
+              }}
             />
           ))}
         </div>
 
-        {/* View All Button */}
+        {/* Enhanced View All Button */}
         {showViewAll && (
           <div className="text-center">
-            <button className="group relative inline-flex items-center justify-center px-8 py-3 text-lg font-medium transition-all duration-300 rounded-lg bg-gradient-hero hover:scale-105 shadow-cosmic">
-              <span className="relative text-white">
+            <button className="group relative inline-flex items-center justify-center px-10 py-4 text-xl font-bold transition-all duration-500 rounded-2xl bg-gradient-hero hover:scale-110 shadow-cosmic magnetic-hover ripple overflow-hidden">
+              <span className="relative z-10 text-white flex items-center">
                 View All Wallpapers
+                <svg 
+                  className="ml-3 w-6 h-6 group-hover:translate-x-2 transition-transform duration-300" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                </svg>
               </span>
-              <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform -skew-x-12" />
+              {/* Animated background overlay */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform -skew-x-12 group-hover:translate-x-full" 
+                   style={{ animationDuration: '0.6s' }} />
             </button>
           </div>
         )}
