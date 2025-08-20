@@ -1,12 +1,25 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import Hero from "@/components/Hero";
+import WallpaperGrid from "@/components/WallpaperGrid";
+import CategorySection from "@/components/CategorySection";
+import PremiumBanner from "@/components/PremiumBanner";
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div>
+      <Hero />
+      <WallpaperGrid 
+        title="Featured Wallpapers" 
+        subtitle="Handpicked by our curators for exceptional quality and creativity"
+        limit={8}
+        showViewAll={true}
+      />
+      <CategorySection />
+      <WallpaperGrid 
+        title="Trending Now" 
+        subtitle="The most downloaded wallpapers this week"
+        limit={4}
+      />
+      <PremiumBanner />
     </div>
   );
 };
