@@ -4,15 +4,18 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
+export default defineConfig(({ command, mode }) => ({
+  // This is the new, smarter line:
+  base: command === 'build' ? '/echoverse-walls/' : '/',
+
   server: {
-    host: "::",
+    host: "",
     port: 8080,
   },
   plugins: [
     react(),
-    mode === 'development' &&
-    componentTagger(),
+    mode === "development" &&
+      componentTagger(),
   ].filter(Boolean),
   resolve: {
     alias: {
