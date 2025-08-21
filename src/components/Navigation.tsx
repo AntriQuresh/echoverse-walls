@@ -24,7 +24,7 @@ const Navigation = () => {
           {/* Logo */}
           <div className="flex items-center space-x-2">
             <img 
-              src="/lovable-uploads/a0f7a28c-4a76-4122-a8f1-fe0cdc119362.png" 
+              src="/logo.png" 
               alt="EchoVerse" 
               className="h-10 w-10 float"
             />
