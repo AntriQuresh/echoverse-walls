@@ -17,7 +17,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <BrowserRouter basename="/echoverse-walls">
         <div className="min-h-screen cosmic-bg">
           <Navigation />
           <Routes>
