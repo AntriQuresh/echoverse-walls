@@ -1,12 +1,35 @@
 import { useState } from "react";
-import { Search, Menu, User, Crown, Upload, X } from "lucide-react";
+import { Search, Menu, User, Crown, Upload, X, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const { user, signOut } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    const { error } = await signOut();
+    if (error) {
+      toast({
+        title: "Error signing out",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Signed out successfully",
+        description: "You have been signed out.",
+      });
+      navigate('/');
+    }
+  };
 
   const categories = [
     { name: "Abstract", color: "gem-purple" },
@@ -36,8 +59,8 @@ const Navigation = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             <div className="flex items-center space-x-6">
-              <a href="/" className="hover:text-primary transition-colors">Home</a>
-              <a href="/explore" className="hover:text-primary transition-colors">Explore</a>
+              <Link to="/" className="hover:text-primary transition-colors">Home</Link>
+              <Link to="/explore" className="hover:text-primary transition-colors">Explore</Link>
               
               {/* Categories Dropdown */}
               <div className="relative group">
@@ -75,17 +98,33 @@ const Navigation = () => {
 
             {/* Action Buttons */}
             <div className="flex items-center space-x-3">
-              <Button variant="outline" size="sm" className="premium-card text-card-foreground">
-                <Crown className="h-4 w-4 mr-2" />
-                Premium
-              </Button>
-              <Button variant="outline" size="sm">
-                <Upload className="h-4 w-4 mr-2" />
-                Upload
-              </Button>
-              <Button variant="outline" size="sm">
-                <User className="h-4 w-4" />
-              </Button>
+              <Link to="/premium">
+                <Button variant="outline" size="sm" className="premium-card text-card-foreground">
+                  <Crown className="h-4 w-4 mr-2" />
+                  Premium
+                </Button>
+              </Link>
+              {user && (
+                <Link to="/upload">
+                  <Button variant="outline" size="sm">
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload
+                  </Button>
+                </Link>
+              )}
+              {user ? (
+                <Button variant="outline" size="sm" onClick={handleSignOut}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </Button>
+              ) : (
+                <Link to="/auth">
+                  <Button variant="outline" size="sm">
+                    <User className="h-4 w-4 mr-2" />
+                    Sign In
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
 
@@ -116,8 +155,8 @@ const Navigation = () => {
 
               {/* Mobile Navigation Links */}
               <div className="flex flex-col space-y-2">
-                <a href="/" className="py-2 hover:text-primary transition-colors">Home</a>
-                <a href="/explore" className="py-2 hover:text-primary transition-colors">Explore</a>
+                <Link to="/" className="py-2 hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>Home</Link>
+                <Link to="/explore" className="py-2 hover:text-primary transition-colors" onClick={() => setIsMenuOpen(false)}>Explore</Link>
                 
                 {/* Mobile Categories */}
                 <div className="py-2">
@@ -141,18 +180,40 @@ const Navigation = () => {
 
               {/* Mobile Actions */}
               <div className="flex flex-col space-y-2 pt-4 border-t border-border/50">
-                <Button className="premium-card text-card-foreground justify-start">
-                  <Crown className="h-4 w-4 mr-2" />
-                  Get Premium
-                </Button>
-                <Button variant="outline" className="justify-start">
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload Wallpaper
-                </Button>
-                <Button variant="outline" className="justify-start">
-                  <User className="h-4 w-4 mr-2" />
-                  Sign In
-                </Button>
+                <Link to="/premium" onClick={() => setIsMenuOpen(false)}>
+                  <Button className="premium-card text-card-foreground justify-start w-full">
+                    <Crown className="h-4 w-4 mr-2" />
+                    Get Premium
+                  </Button>
+                </Link>
+                {user && (
+                  <Link to="/upload" onClick={() => setIsMenuOpen(false)}>
+                    <Button variant="outline" className="justify-start w-full">
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload Wallpaper
+                    </Button>
+                  </Link>
+                )}
+                {user ? (
+                  <Button 
+                    variant="outline" 
+                    className="justify-start w-full" 
+                    onClick={() => {
+                      handleSignOut();
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </Button>
+                ) : (
+                  <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
+                    <Button variant="outline" className="justify-start w-full">
+                      <User className="h-4 w-4 mr-2" />
+                      Sign In
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
           </div>
