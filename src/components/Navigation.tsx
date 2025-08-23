@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Menu, User, Crown, Upload, X, LogOut } from "lucide-react";
+import { Search, Menu, User, Crown, Upload, X, LogOut, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,10 @@ const Navigation = () => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Check if current user is admin
+  const ADMIN_USER_ID = '7401dbc1-ffda-4f42-8f0e-036e1a90770d';
+  const isAdmin = user?.id === ADMIN_USER_ID;
 
   const handleSignOut = async () => {
     const { error } = await signOut();
@@ -120,6 +124,14 @@ const Navigation = () => {
                       Dashboard
                     </Button>
                   </Link>
+                  {isAdmin && (
+                    <Link to="/admin-profile">
+                      <Button variant="outline" size="sm" className="border-purple-500/50 text-purple-600 hover:bg-purple-50">
+                        <Shield className="h-4 w-4 mr-2" />
+                        Admin
+                      </Button>
+                    </Link>
+                  )}
                   <Button variant="outline" size="sm" onClick={handleSignOut}>
                     <LogOut className="h-4 w-4 mr-2" />
                     Sign Out
@@ -210,6 +222,14 @@ const Navigation = () => {
                         Dashboard
                       </Button>
                     </Link>
+                    {isAdmin && (
+                      <Link to="/admin-profile" onClick={() => setIsMenuOpen(false)}>
+                        <Button variant="outline" className="justify-start w-full border-purple-500/50 text-purple-600 hover:bg-purple-50">
+                          <Shield className="h-4 w-4 mr-2" />
+                          Admin Panel
+                        </Button>
+                      </Link>
+                    )}
                     <Button 
                       variant="outline" 
                       className="justify-start w-full" 

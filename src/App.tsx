@@ -9,6 +9,7 @@ import Premium from "./pages/Premium";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Upload from "./pages/Upload";
+import AdminProfile from "./pages/AdminProfile";
 import NotFound from "./pages/NotFound";
 import Navigation from "./components/Navigation";
 import Footer from "./components/Footer";
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/upload" element={<Upload />} />
+            <Route path="/admin-profile" element={<AdminProfile />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

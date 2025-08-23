@@ -107,10 +107,28 @@ const Upload = () => {
       await uploadFile(selectedFile, filePath);
       const imageUrl = getPublicUrl(filePath);
 
-      // For now, just show success - database operations will be added later
+      // Save wallpaper to database
+      const { error: dbError } = await supabase
+        .from('wallpapers')
+        .insert({
+          user_id: user?.id,
+          title: title.trim(),
+          description: description?.trim() || null,
+          category: categoryId,
+          tags: tags ? tags.split(',').map(tag => tag.trim()).filter(Boolean) : [],
+          file_url: imageUrl,
+          file_path: filePath,
+          status: 'pending'
+        });
+
+      if (dbError) {
+        console.error("Database error:", dbError);
+        throw new Error("Failed to save wallpaper details");
+      }
+
       toast({
         title: "Upload successful!",
-        description: "Your wallpaper has been uploaded to storage. Database integration coming soon!",
+        description: "Your wallpaper has been uploaded and is pending review!",
       });
 
       // Reset form
