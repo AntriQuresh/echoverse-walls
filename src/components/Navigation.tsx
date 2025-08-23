@@ -113,10 +113,18 @@ const Navigation = () => {
                 </Link>
               )}
               {user ? (
-                <Button variant="outline" size="sm" onClick={handleSignOut}>
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sign Out
-                </Button>
+                <>
+                  <Link to="/dashboard">
+                    <Button variant="outline" size="sm">
+                      <User className="h-4 w-4 mr-2" />
+                      Dashboard
+                    </Button>
+                  </Link>
+                  <Button variant="outline" size="sm" onClick={handleSignOut}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </Button>
+                </>
               ) : (
                 <Link to="/auth">
                   <Button variant="outline" size="sm">
@@ -195,17 +203,25 @@ const Navigation = () => {
                   </Link>
                 )}
                 {user ? (
-                  <Button 
-                    variant="outline" 
-                    className="justify-start w-full" 
-                    onClick={() => {
-                      handleSignOut();
-                      setIsMenuOpen(false);
-                    }}
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
-                  </Button>
+                  <>
+                    <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>
+                      <Button variant="outline" className="justify-start w-full">
+                        <User className="h-4 w-4 mr-2" />
+                        Dashboard
+                      </Button>
+                    </Link>
+                    <Button 
+                      variant="outline" 
+                      className="justify-start w-full" 
+                      onClick={() => {
+                        handleSignOut();
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Sign Out
+                    </Button>
+                  </>
                 ) : (
                   <Link to="/auth" onClick={() => setIsMenuOpen(false)}>
                     <Button variant="outline" className="justify-start w-full">
