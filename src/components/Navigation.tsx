@@ -124,11 +124,12 @@ const Navigation = () => {
                       Dashboard
                     </Button>
                   </Link>
-                  {isAdmin && (
-                    <Link to="/admin-profile">
+                  {/* Admin Dashboard Link - Only show for admin */}
+                  {user?.email === 'happyshops786@gmail.com' && (
+                    <Link to="/admin-dashboard">
                       <Button variant="outline" size="sm" className="border-purple-500/50 text-purple-600 hover:bg-purple-50">
                         <Shield className="h-4 w-4 mr-2" />
-                        Admin
+                        Admin Dashboard
                       </Button>
                     </Link>
                   )}
@@ -222,11 +223,12 @@ const Navigation = () => {
                         Dashboard
                       </Button>
                     </Link>
-                    {isAdmin && (
-                      <Link to="/admin-profile" onClick={() => setIsMenuOpen(false)}>
+                    {/* Admin Dashboard Link - Only show for admin */}
+                    {user?.email === 'happyshops786@gmail.com' && (
+                      <Link to="/admin-dashboard" onClick={() => setIsMenuOpen(false)}>
                         <Button variant="outline" className="justify-start w-full border-purple-500/50 text-purple-600 hover:bg-purple-50">
                           <Shield className="h-4 w-4 mr-2" />
-                          Admin Panel
+                          Admin Dashboard
                         </Button>
                       </Link>
                     )}
