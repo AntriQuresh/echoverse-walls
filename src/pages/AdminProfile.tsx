@@ -28,11 +28,11 @@ const AdminProfile = () => {
   const [submissions, setSubmissions] = useState<WallpaperSubmission[]>([]);
   const [loadingSubmissions, setLoadingSubmissions] = useState(false);
 
-  // Your admin user ID - replace with your actual Supabase user ID
-  const ADMIN_USER_ID = '7401dbc1-ffda-4f42-8f0e-036e1a90770d';
+  // Admin email - only this user can access the admin dashboard
+  const ADMIN_EMAIL = 'happyshops786@gmail.com';
 
   // Check if current user is admin
-  const isAdmin = user?.id === ADMIN_USER_ID;
+  const isAdmin = user?.email === ADMIN_EMAIL;
 
   // Redirect if not admin
   if (!loading && (!user || !isAdmin)) {
