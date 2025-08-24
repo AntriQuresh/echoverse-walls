@@ -2,12 +2,16 @@ import { Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserStats } from '@/hooks/useUserStats';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, LogOut, User, Mail, Calendar } from 'lucide-react';
+import UserUploads from '@/components/UserUploads';
+import { Loader2, LogOut, User, Mail, Calendar, Gift, Upload, Download } from 'lucide-react';
 
 const Dashboard = () => {
   const { user, loading, signOut } = useAuth();
+  const { stats, loading: statsLoading, claimDailyCredits } = useUserStats();
   const { toast } = useToast();
 
   // Redirect if not authenticated
@@ -28,6 +32,23 @@ const Dashboard = () => {
       toast({
         title: "Signed out successfully",
         description: "You have been logged out.",
+      });
+    }
+  };
+
+  const handleClaimCredits = async () => {
+    const result = await claimDailyCredits();
+    
+    if (result.error) {
+      toast({
+        title: "Cannot claim credits",
+        description: result.error,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Credits claimed!",
+        description: "You received 5 free credits for today.",
       });
     }
   };
@@ -150,6 +171,40 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
+          {/* Credits Card */}
+          <Card className="glass">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                Credits & Rewards
+                <Badge variant="secondary" className="bg-primary/20 text-primary">
+                  {statsLoading ? '...' : stats.credits} credits
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-center p-4 rounded-lg bg-gradient-to-r from-primary/10 to-primary/20">
+                <Gift className="h-8 w-8 text-primary mx-auto mb-2" />
+                <p className="font-semibold">Daily Free Credits</p>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Claim 5 free credits every day!
+                </p>
+                <Button
+                  onClick={handleClaimCredits}
+                  size="sm"
+                  disabled={statsLoading}
+                  className="w-full"
+                >
+                  <Gift className="h-4 w-4 mr-2" />
+                  Claim Today's Credits
+                </Button>
+              </div>
+              
+              <div className="text-xs text-center text-muted-foreground">
+                Use credits to download premium wallpapers and unlock exclusive content
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Stats Card */}
           <Card className="glass">
             <CardHeader>
@@ -158,16 +213,25 @@ const Dashboard = () => {
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center p-4 rounded-lg bg-muted/30">
-                  <p className="text-2xl font-bold text-primary">0</p>
+                  <Upload className="h-6 w-6 text-primary mx-auto mb-2" />
+                  <p className="text-2xl font-bold text-primary">
+                    {statsLoading ? '...' : stats.uploadsCount}
+                  </p>
                   <p className="text-sm text-muted-foreground">Wallpapers Uploaded</p>
                 </div>
                 <div className="text-center p-4 rounded-lg bg-muted/30">
-                  <p className="text-2xl font-bold text-primary">0</p>
-                  <p className="text-sm text-muted-foreground">Downloads</p>
+                  <Download className="h-6 w-6 text-primary mx-auto mb-2" />
+                  <p className="text-2xl font-bold text-primary">
+                    {statsLoading ? '...' : stats.totalDownloads}
+                  </p>
+                  <p className="text-sm text-muted-foreground">Total Downloads</p>
                 </div>
               </div>
             </CardContent>
           </Card>
+
+          {/* User Uploads */}
+          <UserUploads />
         </div>
       </div>
     </div>

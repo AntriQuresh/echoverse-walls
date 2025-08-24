@@ -40,15 +40,32 @@ const WallpaperCard = ({
   const handleDownload = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    // TODO: Implement download logic
-    console.log("Download wallpaper:", id);
+    
+    // Create a download link and trigger download
+    const link = document.createElement('a');
+    link.href = image;
+    link.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.jpg`;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleShare = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    // TODO: Implement share logic
-    console.log("Share wallpaper:", id);
+    
+    if (navigator.share) {
+      navigator.share({
+        title: title,
+        text: `Check out this amazing wallpaper: ${title}`,
+        url: window.location.href,
+      });
+    } else {
+      // Fallback to copying URL to clipboard
+      navigator.clipboard.writeText(window.location.href);
+      // You might want to show a toast here
+    }
   };
 
   return (

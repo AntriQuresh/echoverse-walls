@@ -1,4 +1,9 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import WallpaperCard from "./WallpaperCard";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 import wallpaper1 from "@/assets/wallpaper-1.jpg";
 import wallpaper2 from "@/assets/wallpaper-2.jpg";
 import wallpaper3 from "@/assets/wallpaper-3.jpg";
@@ -9,90 +14,62 @@ interface WallpaperGridProps {
   subtitle?: string;
   limit?: number;
   showViewAll?: boolean;
+  category?: string;
+  searchQuery?: string;
 }
 
-// Mock data - in a real app, this would come from an API
-const mockWallpapers = [
+interface Wallpaper {
+  id: string;
+  title: string;
+  file_url: string;
+  category: string;
+  tags: string[];
+  user_id: string;
+  status: string;
+  created_at: string;
+}
+
+// Fallback wallpapers for when there's no data
+const fallbackWallpapers = [
   {
-    id: "1",
+    id: "fallback-1",
     title: "Cosmic Nebula Dreams",
-    image: wallpaper1,
+    file_url: wallpaper1,
     category: "Abstract",
-    resolution: "4K • 3840x2160",
-    downloads: 12450,
-    likes: 3201,
-    isPremium: true,
+    tags: ["space", "cosmic"],
+    user_id: "",
+    status: "approved",
+    created_at: new Date().toISOString(),
   },
   {
-    id: "2", 
+    id: "fallback-2", 
     title: "Minimal Geometry",
-    image: wallpaper2,
+    file_url: wallpaper2,
     category: "Minimal",
-    resolution: "2K • 2560x1440",
-    downloads: 8932,
-    likes: 1876,
-    isPremium: false,
+    tags: ["minimal", "geometry"],
+    user_id: "",
+    status: "approved",
+    created_at: new Date().toISOString(),
   },
   {
-    id: "3",
+    id: "fallback-3",
     title: "Neon Cyberpunk City",
-    image: wallpaper3,
+    file_url: wallpaper3,
     category: "Gaming",
-    resolution: "4K • 3840x2160",
-    downloads: 15623,
-    likes: 4105,
-    isPremium: true,
+    tags: ["cyberpunk", "neon"],
+    user_id: "",
+    status: "approved",
+    created_at: new Date().toISOString(),
   },
   {
-    id: "4",
+    id: "fallback-4",
     title: "Cherry Blossom Path",
-    image: wallpaper4,
+    file_url: wallpaper4,
     category: "Anime",
-    resolution: "HD • 1920x1080",
-    downloads: 22134,
-    likes: 5892,
-    isPremium: false,
-  },
-  // Duplicate some for demonstration
-  {
-    id: "5",
-    title: "Abstract Waves",
-    image: wallpaper1,
-    category: "Abstract",
-    resolution: "4K • 3840x2160",
-    downloads: 9876,
-    likes: 2340,
-    isPremium: true,
-  },
-  {
-    id: "6",
-    title: "Clean Lines",
-    image: wallpaper2,
-    category: "Minimal",
-    resolution: "2K • 2560x1440",
-    downloads: 6543,
-    likes: 1254,
-    isPremium: false,
-  },
-  {
-    id: "7",
-    title: "Digital Landscape",
-    image: wallpaper3,
-    category: "Gaming",
-    resolution: "4K • 3840x2160",
-    downloads: 11087,
-    likes: 2987,
-    isPremium: true,
-  },
-  {
-    id: "8",
-    title: "Peaceful Garden",
-    image: wallpaper4,
-    category: "Anime",
-    resolution: "HD • 1920x1080",
-    downloads: 18234,
-    likes: 4567,
-    isPremium: false,
+    tags: ["anime", "nature"],
+    user_id: "",
+    status: "approved",
+    created_at: new Date().toISOString(),
   },
 ];
 
@@ -100,9 +77,66 @@ const WallpaperGrid = ({
   title, 
   subtitle, 
   limit, 
-  showViewAll = false 
+  showViewAll = false,
+  category,
+  searchQuery
 }: WallpaperGridProps) => {
-  const displayWallpapers = limit ? mockWallpapers.slice(0, limit) : mockWallpapers;
+  const [wallpapers, setWallpapers] = useState<Wallpaper[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchWallpapers();
+  }, [category, searchQuery, limit]);
+
+  const fetchWallpapers = async () => {
+    try {
+      setLoading(true);
+      let query = supabase
+        .from('wallpapers')
+        .select('*')
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false });
+
+      if (category && category !== 'All') {
+        query = query.eq('category', category);
+      }
+
+      if (searchQuery) {
+        query = query.or(`title.ilike.%${searchQuery}%,tags.cs.{"${searchQuery}"}`);
+      }
+
+      if (limit) {
+        query = query.limit(limit);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      // Use real data if available, otherwise fall back to sample wallpapers
+      if (data && data.length > 0) {
+        setWallpapers(data);
+      } else {
+        // Show fallback data when no real wallpapers exist
+        const fallbackData = limit ? fallbackWallpapers.slice(0, limit) : fallbackWallpapers;
+        setWallpapers(fallbackData);
+      }
+    } catch (error) {
+      console.error('Error fetching wallpapers:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load wallpapers",
+        variant: "destructive",
+      });
+      // Show fallback data on error
+      const fallbackData = limit ? fallbackWallpapers.slice(0, limit) : fallbackWallpapers;
+      setWallpapers(fallbackData);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <section className="py-20 relative overflow-hidden">
@@ -124,24 +158,40 @@ const WallpaperGrid = ({
         </div>
 
         {/* Enhanced Wallpaper Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mb-16">
-          {displayWallpapers.map((wallpaper, index) => (
-            <WallpaperCard
-              key={wallpaper.id}
-              {...wallpaper}
-              className="animate-fade-in scroll-reveal"
-              style={{ 
-                animationDelay: `${index * 0.1}s`,
-                animationFillMode: 'both'
-              }}
-            />
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mb-16">
+            {wallpapers.map((wallpaper, index) => (
+              <WallpaperCard
+                key={wallpaper.id}
+                id={wallpaper.id}
+                title={wallpaper.title}
+                image={wallpaper.file_url}
+                category={wallpaper.category}
+                resolution="4K • 3840x2160"
+                downloads={Math.floor(Math.random() * 50000) + 1000}
+                likes={Math.floor(Math.random() * 10000) + 100}
+                isPremium={Math.random() > 0.6}
+                className="animate-fade-in scroll-reveal"
+                style={{ 
+                  animationDelay: `${index * 0.1}s`,
+                  animationFillMode: 'both'
+                }}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Enhanced View All Button */}
-        {showViewAll && (
+        {showViewAll && !loading && (
           <div className="text-center">
-            <button className="group relative inline-flex items-center justify-center px-10 py-4 text-xl font-bold transition-all duration-500 rounded-2xl bg-gradient-hero hover:scale-110 shadow-cosmic magnetic-hover ripple overflow-hidden">
+            <button 
+              onClick={() => navigate('/explore')}
+              className="group relative inline-flex items-center justify-center px-10 py-4 text-xl font-bold transition-all duration-500 rounded-2xl bg-gradient-hero hover:scale-110 shadow-cosmic magnetic-hover ripple overflow-hidden"
+            >
               <span className="relative z-10 text-white flex items-center">
                 View All Wallpapers
                 <svg 

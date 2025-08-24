@@ -123,6 +123,8 @@ const Explore = () => {
             title="" 
             limit={20}
             showViewAll={false}
+            category={selectedCategory}
+            searchQuery={searchQuery}
           />
 
           {/* Load More Button */}
