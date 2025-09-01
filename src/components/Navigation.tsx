@@ -109,12 +109,20 @@ const Navigation = () => {
                 </Button>
               </Link>
               {user && (
-                <Link to="/upload">
-                  <Button variant="outline" size="sm">
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload
-                  </Button>
-                </Link>
+                <>
+                  <Link to="/upload">
+                    <Button variant="outline" size="sm">
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload
+                    </Button>
+                  </Link>
+                  <Link to="/profile-submission">
+                    <Button variant="outline" size="sm">
+                      <User className="h-4 w-4 mr-2" />
+                      Creator Profile
+                    </Button>
+                  </Link>
+                </>
               )}
               {user ? (
                 <>
@@ -208,12 +216,20 @@ const Navigation = () => {
                   </Button>
                 </Link>
                 {user && (
-                  <Link to="/upload" onClick={() => setIsMenuOpen(false)}>
-                    <Button variant="outline" className="justify-start w-full">
-                      <Upload className="h-4 w-4 mr-2" />
-                      Upload Wallpaper
-                    </Button>
-                  </Link>
+                  <>
+                    <Link to="/upload" onClick={() => setIsMenuOpen(false)}>
+                      <Button variant="outline" className="justify-start w-full">
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload Wallpaper
+                      </Button>
+                    </Link>
+                    <Link to="/profile-submission" onClick={() => setIsMenuOpen(false)}>
+                      <Button variant="outline" className="justify-start w-full">
+                        <User className="h-4 w-4 mr-2" />
+                        Creator Profile
+                      </Button>
+                    </Link>
+                  </>
                 )}
                 {user ? (
                   <>

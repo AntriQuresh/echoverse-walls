@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,7 +23,11 @@ import {
   Settings,
   Download,
   Star,
-  Sparkles
+  Sparkles,
+  User,
+  Mail,
+  Globe,
+  Camera
 } from 'lucide-react';
 
 interface WallpaperSubmission {
@@ -39,11 +44,28 @@ interface WallpaperSubmission {
   user_id: string;
 }
 
+interface ProfileSubmission {
+  id: string;
+  user_id: string;
+  display_name: string;
+  bio: string;
+  avatar_url: string;
+  banner_url: string;
+  website_url: string;
+  social_links: any;
+  portfolio_links: any;
+  status: 'pending' | 'approved' | 'rejected';
+  created_at: string;
+  updated_at: string;
+}
+
 interface DashboardMetrics {
   totalWallpapers: number;
   totalApproved: number;
   totalPending: number;
   totalCreators: number;
+  totalProfiles: number;
+  pendingProfiles: number;
 }
 
 const StatsCard = ({ title, value, icon: Icon, trend, color }: {
@@ -156,6 +178,101 @@ const PendingWallpaperCard = ({ submission, onApprove, onReject, onDelete }: {
   </Card>
 );
 
+const PendingProfileCard = ({ profile, onApprove, onReject }: {
+  profile: ProfileSubmission;
+  onApprove: (id: string) => void;
+  onReject: (id: string) => void;
+}) => (
+  <Card className="admin-glass group hover:scale-[1.02] transition-all duration-500 overflow-hidden">
+    <div className="relative aspect-[4/3] overflow-hidden">
+      {profile.banner_url ? (
+        <img 
+          src={profile.banner_url} 
+          alt="Profile banner"
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+          loading="lazy"
+        />
+      ) : (
+        <div className="w-full h-full bg-gradient-to-br from-primary/20 to-purple-500/20" />
+      )}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+      <div className="absolute top-3 right-3">
+        <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-300 border-yellow-500/30">
+          Pending
+        </Badge>
+      </div>
+      <div className="absolute bottom-0 left-0 right-0 p-4">
+        <div className="flex items-center space-x-3 mb-2">
+          {profile.avatar_url ? (
+            <img 
+              src={profile.avatar_url} 
+              alt="Profile avatar"
+              className="w-12 h-12 rounded-full border-2 border-white/20 object-cover"
+            />
+          ) : (
+            <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+              <User className="h-6 w-6 text-white" />
+            </div>
+          )}
+          <div>
+            <h3 className="font-semibold text-white text-lg font-['Poppins'] truncate">
+              {profile.display_name || 'Anonymous Creator'}
+            </h3>
+            <p className="text-white/60 text-xs">
+              {new Date(profile.created_at).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+              })}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <CardContent className="p-4 space-y-3">
+      {profile.bio && (
+        <p className="text-sm text-muted-foreground line-clamp-2">{profile.bio}</p>
+      )}
+      
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        {profile.website_url && (
+          <div className="flex items-center">
+            <Globe className="h-3 w-3 mr-1" />
+            Website
+          </div>
+        )}
+        {profile.social_links && Object.keys(profile.social_links).length > 0 && (
+          <div className="flex items-center">
+            <Mail className="h-3 w-3 mr-1" />
+            Social Links
+          </div>
+        )}
+      </div>
+      
+      <div className="flex gap-2 pt-2">
+        <Button
+          onClick={() => onApprove(profile.id)}
+          size="sm"
+          className="flex-1 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white border-0 shadow-lg hover:shadow-emerald-500/25"
+        >
+          <CheckCircle className="h-3 w-3 mr-1" />
+          Approve
+        </Button>
+        <Button
+          onClick={() => onReject(profile.id)}
+          size="sm"
+          variant="outline"
+          className="flex-1 border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500/50"
+        >
+          <XCircle className="h-3 w-3 mr-1" />
+          Reject
+        </Button>
+      </div>
+    </CardContent>
+  </Card>
+);
+
 const RecentActivityCard = ({ submissions }: { submissions: WallpaperSubmission[] }) => (
   <Card className="admin-glass">
     <CardHeader>
@@ -206,13 +323,17 @@ const AdminDashboard = () => {
   const { user, loading } = useAuth();
   const { toast } = useToast();
   const [submissions, setSubmissions] = useState<WallpaperSubmission[]>([]);
+  const [profileSubmissions, setProfileSubmissions] = useState<ProfileSubmission[]>([]);
   const [metrics, setMetrics] = useState<DashboardMetrics>({
     totalWallpapers: 0,
     totalApproved: 0,
     totalPending: 0,
     totalCreators: 0,
+    totalProfiles: 0,
+    pendingProfiles: 0,
   });
   const [loadingSubmissions, setLoadingSubmissions] = useState(false);
+  const [loadingProfiles, setLoadingProfiles] = useState(false);
 
   // Admin email - only this user can access the admin dashboard
   const ADMIN_EMAIL = 'happyshops786@gmail.com';
@@ -233,6 +354,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     if (isAdmin) {
       fetchSubmissions();
+      fetchProfileSubmissions();
       fetchMetrics();
     }
   }, [isAdmin]);
@@ -259,24 +381,52 @@ const AdminDashboard = () => {
     }
   };
 
-  const fetchMetrics = async () => {
+  const fetchProfileSubmissions = async () => {
+    setLoadingProfiles(true);
     try {
-      const { data: wallpapers, error } = await supabase
-        .from('wallpapers')
-        .select('status, user_id');
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
+      setProfileSubmissions((data || []) as ProfileSubmission[]);
+    } catch (error) {
+      console.error('Error fetching profile submissions:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch profile submissions",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingProfiles(false);
+    }
+  };
 
-      const totalWallpapers = wallpapers?.length || 0;
-      const totalApproved = wallpapers?.filter(w => w.status === 'approved').length || 0;
-      const totalPending = wallpapers?.filter(w => w.status === 'pending').length || 0;
-      const uniqueCreators = new Set(wallpapers?.map(w => w.user_id)).size;
+  const fetchMetrics = async () => {
+    try {
+      const [wallpapersResult, profilesResult] = await Promise.all([
+        supabase.from('wallpapers').select('status, user_id'),
+        supabase.from('profiles').select('status, user_id')
+      ]);
+
+      const wallpapers = wallpapersResult.data || [];
+      const profiles = profilesResult.data || [];
+
+      const totalWallpapers = wallpapers.length;
+      const totalApproved = wallpapers.filter(w => w.status === 'approved').length;
+      const totalPending = wallpapers.filter(w => w.status === 'pending').length;
+      const uniqueCreators = new Set(wallpapers.map(w => w.user_id)).size;
+      const totalProfiles = profiles.length;
+      const pendingProfiles = profiles.filter(p => p.status === 'pending').length;
 
       setMetrics({
         totalWallpapers,
         totalApproved,
         totalPending,
         totalCreators: uniqueCreators,
+        totalProfiles,
+        pendingProfiles,
       });
     } catch (error) {
       console.error('Error fetching metrics:', error);
@@ -298,12 +448,39 @@ const AdminDashboard = () => {
       });
 
       fetchSubmissions();
+      fetchProfileSubmissions();
       fetchMetrics();
     } catch (error) {
       console.error('Error updating submission:', error);
       toast({
         title: "Error",
         description: "Failed to update submission",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const updateProfileStatus = async (id: string, status: 'approved' | 'rejected') => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ status })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Profile ${status} successfully`,
+      });
+
+      fetchProfileSubmissions();
+      fetchMetrics();
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update profile",
         variant: "destructive",
       });
     }
@@ -332,6 +509,7 @@ const AdminDashboard = () => {
       });
 
       fetchSubmissions();
+      fetchProfileSubmissions();
       fetchMetrics();
     } catch (error) {
       console.error('Error deleting submission:', error);
@@ -355,6 +533,7 @@ const AdminDashboard = () => {
   }
 
   const pendingSubmissions = submissions.filter(s => s.status === 'pending');
+  const pendingProfiles = profileSubmissions.filter(p => p.status === 'pending');
 
   return (
     <div className="min-h-screen admin-bg">
@@ -400,7 +579,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           <StatsCard
             title="Total Wallpapers"
             value={metrics.totalWallpapers}
@@ -422,11 +601,18 @@ const AdminDashboard = () => {
             color="from-yellow-500 to-orange-500"
           />
           <StatsCard
+            title="Total Profiles"
+            value={metrics.totalProfiles}
+            icon={User}
+            trend="+3 new profiles"
+            color="from-purple-500 to-pink-500"
+          />
+          <StatsCard
             title="Active Creators"
             value={metrics.totalCreators}
             icon={Users}
             trend="+5 new creators"
-            color="from-purple-500 to-pink-500"
+            color="from-indigo-500 to-blue-500"
           />
         </div>
 
@@ -434,43 +620,95 @@ const AdminDashboard = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Pending Requests - Takes 2/3 of the space */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-2xl font-bold font-['Poppins'] flex items-center">
-                <Clock className="h-6 w-6 mr-2 text-yellow-500" />
-                Pending Wallpaper Requests
-              </h3>
-              <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-400">
-                {pendingSubmissions.length} pending
-              </Badge>
-            </div>
+            <Tabs defaultValue="wallpapers" className="space-y-6">
+              <TabsList className="grid w-full grid-cols-2 admin-glass">
+                <TabsTrigger value="wallpapers" className="text-sm font-medium">
+                  Wallpaper Requests ({pendingSubmissions.length})
+                </TabsTrigger>
+                <TabsTrigger value="profiles" className="text-sm font-medium">
+                  Profile Requests ({pendingProfiles.length})
+                </TabsTrigger>
+              </TabsList>
 
-            {loadingSubmissions ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="admin-glass rounded-xl h-96 animate-pulse"></div>
-                ))}
-              </div>
-            ) : pendingSubmissions.length === 0 ? (
-              <Card className="admin-glass">
-                <CardContent className="p-12 text-center">
-                  <Star className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
-                  <h4 className="text-lg font-medium mb-2">All caught up! 🎉</h4>
-                  <p className="text-muted-foreground">No pending wallpaper requests to review.</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {pendingSubmissions.map((submission) => (
-                  <PendingWallpaperCard
-                    key={submission.id}
-                    submission={submission}
-                    onApprove={(id) => updateSubmissionStatus(id, 'approved')}
-                    onReject={(id) => updateSubmissionStatus(id, 'rejected')}
-                    onDelete={deleteSubmission}
-                  />
-                ))}
-              </div>
-            )}
+              <TabsContent value="wallpapers" className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-2xl font-bold font-['Poppins'] flex items-center">
+                    <Clock className="h-6 w-6 mr-2 text-yellow-500" />
+                    Pending Wallpaper Requests
+                  </h3>
+                  <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-400">
+                    {pendingSubmissions.length} pending
+                  </Badge>
+                </div>
+
+                {loadingSubmissions ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="admin-glass rounded-xl h-96 animate-pulse"></div>
+                    ))}
+                  </div>
+                ) : pendingSubmissions.length === 0 ? (
+                  <Card className="admin-glass">
+                    <CardContent className="p-12 text-center">
+                      <Star className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+                      <h4 className="text-lg font-medium mb-2">All caught up! 🎉</h4>
+                      <p className="text-muted-foreground">No pending wallpaper requests to review.</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {pendingSubmissions.map((submission) => (
+                      <PendingWallpaperCard
+                        key={submission.id}
+                        submission={submission}
+                        onApprove={(id) => updateSubmissionStatus(id, 'approved')}
+                        onReject={(id) => updateSubmissionStatus(id, 'rejected')}
+                        onDelete={deleteSubmission}
+                      />
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="profiles" className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-2xl font-bold font-['Poppins'] flex items-center">
+                    <User className="h-6 w-6 mr-2 text-purple-500" />
+                    Pending Profile Requests
+                  </h3>
+                  <Badge variant="secondary" className="bg-purple-500/20 text-purple-400">
+                    {pendingProfiles.length} pending
+                  </Badge>
+                </div>
+
+                {loadingProfiles ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="admin-glass rounded-xl h-96 animate-pulse"></div>
+                    ))}
+                  </div>
+                ) : pendingProfiles.length === 0 ? (
+                  <Card className="admin-glass">
+                    <CardContent className="p-12 text-center">
+                      <UserCheck className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+                      <h4 className="text-lg font-medium mb-2">All caught up! 🎉</h4>
+                      <p className="text-muted-foreground">No pending profile requests to review.</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {pendingProfiles.map((profile) => (
+                      <PendingProfileCard
+                        key={profile.id}
+                        profile={profile}
+                        onApprove={(id) => updateProfileStatus(id, 'approved')}
+                        onReject={(id) => updateProfileStatus(id, 'rejected')}
+                      />
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           </div>
 
           {/* Sidebar - Takes 1/3 of the space */}
