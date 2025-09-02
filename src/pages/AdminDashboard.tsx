@@ -27,7 +27,8 @@ import {
   User,
   Mail,
   Globe,
-  Camera
+  Camera,
+  RefreshCw
 } from 'lucide-react';
 
 interface WallpaperSubmission {
@@ -334,6 +335,7 @@ const AdminDashboard = () => {
   });
   const [loadingSubmissions, setLoadingSubmissions] = useState(false);
   const [loadingProfiles, setLoadingProfiles] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
 
   // Admin email - only this user can access the admin dashboard
   const ADMIN_EMAIL = 'happyshops786@gmail.com';
@@ -361,21 +363,69 @@ const AdminDashboard = () => {
 
   const fetchSubmissions = async () => {
     setLoadingSubmissions(true);
+    setConnectionError(null);
     try {
+      console.log('Fetching wallpaper submissions...');
+      console.log('Current user:', user?.email);
+      console.log('Is admin:', isAdmin);
+      
+      // Check if user is authenticated
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Check current session
+      const { data: session } = await supabase.auth.getSession();
+      console.log('Current session:', session);
+
       const { data, error } = await supabase
         .from('wallpapers')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      console.log('Supabase response:', { data, error });
+
+      if (error) {
+        console.error('Supabase error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw error;
+      }
+
+      console.log('Successfully fetched wallpapers:', data?.length || 0);
       setSubmissions((data || []) as WallpaperSubmission[]);
-    } catch (error) {
+      setConnectionError(null); // Clear any previous errors
+    } catch (error: any) {
       console.error('Error fetching submissions:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch wallpaper submissions",
-        variant: "destructive",
-      });
+      
+      // Provide more specific error messages
+      let errorMessage = "Failed to fetch wallpaper submissions";
+      if (error.message?.includes('JWT')) {
+        errorMessage = "Authentication expired. Please sign in again.";
+      } else if (error.message?.includes('permission')) {
+        errorMessage = "You don't have permission to view submissions.";
+      } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+        errorMessage = "Network error. Please check your connection and try again.";
+      } else if (error.message?.includes('User not authenticated')) {
+        errorMessage = "Please sign in to access the admin dashboard.";
+      }
+
+      setConnectionError(errorMessage);
+      
+      // Don't show toast for connection errors, just set the error state
+      if (!error.message?.includes('network') && !error.message?.includes('fetch')) {
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
+      
+      // Set empty array on error to avoid showing old data
+      setSubmissions([]);
     } finally {
       setLoadingSubmissions(false);
     }
@@ -384,20 +434,43 @@ const AdminDashboard = () => {
   const fetchProfileSubmissions = async () => {
     setLoadingProfiles(true);
     try {
+      console.log('Fetching profile submissions...');
+      
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      console.log('Profile submissions response:', { data, error });
+
+      if (error) {
+        console.error('Profile fetch error:', error);
+        throw error;
+      }
+
+      console.log('Successfully fetched profiles:', data?.length || 0);
       setProfileSubmissions((data || []) as ProfileSubmission[]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching profile submissions:', error);
+      
+      let errorMessage = "Failed to fetch profile submissions";
+      if (error.message?.includes('JWT')) {
+        errorMessage = "Authentication expired. Please sign in again.";
+      } else if (error.message?.includes('permission')) {
+        errorMessage = "You don't have permission to view profile submissions.";
+      }
+
       toast({
-        title: "Error",
-        description: "Failed to fetch profile submissions",
+        title: "Error", 
+        description: errorMessage,
         variant: "destructive",
       });
+      
+      setProfileSubmissions([]);
     } finally {
       setLoadingProfiles(false);
     }
@@ -636,12 +709,44 @@ const AdminDashboard = () => {
                     <Clock className="h-6 w-6 mr-2 text-yellow-500" />
                     Pending Wallpaper Requests
                   </h3>
-                  <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-400">
-                    {pendingSubmissions.length} pending
-                  </Badge>
+                  <div className="flex items-center gap-3">
+                    <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-400">
+                      {pendingSubmissions.length} pending
+                    </Badge>
+                    <Button
+                      onClick={fetchSubmissions}
+                      variant="outline"
+                      size="sm"
+                      disabled={loadingSubmissions}
+                      className="border-primary/30 text-primary hover:bg-primary/10"
+                    >
+                      {loadingSubmissions ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Activity className="h-4 w-4" />
+                      )}
+                      Refresh
+                    </Button>
+                  </div>
                 </div>
 
-                {loadingSubmissions ? (
+                {connectionError ? (
+                  <Card className="admin-glass border-red-500/20">
+                    <CardContent className="p-12 text-center">
+                      <XCircle className="h-16 w-16 text-red-400 mx-auto mb-4" />
+                      <h4 className="text-lg font-medium mb-2 text-red-400">Connection Error</h4>
+                      <p className="text-muted-foreground mb-4">{connectionError}</p>
+                      <Button
+                        onClick={fetchSubmissions}
+                        variant="outline"
+                        className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+                      >
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Try Again
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : loadingSubmissions ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {[1, 2, 3, 4].map((i) => (
                       <div key={i} className="admin-glass rounded-xl h-96 animate-pulse"></div>
@@ -676,9 +781,25 @@ const AdminDashboard = () => {
                     <User className="h-6 w-6 mr-2 text-purple-500" />
                     Pending Profile Requests
                   </h3>
-                  <Badge variant="secondary" className="bg-purple-500/20 text-purple-400">
-                    {pendingProfiles.length} pending
-                  </Badge>
+                  <div className="flex items-center gap-3">
+                    <Badge variant="secondary" className="bg-purple-500/20 text-purple-400">
+                      {pendingProfiles.length} pending
+                    </Badge>
+                    <Button
+                      onClick={fetchProfileSubmissions}
+                      variant="outline"
+                      size="sm"
+                      disabled={loadingProfiles}
+                      className="border-primary/30 text-primary hover:bg-primary/10"
+                    >
+                      {loadingProfiles ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Activity className="h-4 w-4" />
+                      )}
+                      Refresh
+                    </Button>
+                  </div>
                 </div>
 
                 {loadingProfiles ? (

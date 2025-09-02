@@ -10,7 +10,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Upload as UploadIcon, Loader2, Image as ImageIcon } from 'lucide-react';
+import { Upload as UploadIcon, Loader2, Image as ImageIcon, TestTube } from 'lucide-react';
+import TestUpload from '@/components/TestUpload';
 
 interface Category {
   id: string;
@@ -299,6 +300,24 @@ const Upload = () => {
             </form>
           </CardContent>
         </Card>
+        
+        {/* Test Upload Component for Development */}
+        <div className="mt-8">
+          <Card className="glass border-dashed border-yellow-500/30">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-yellow-400">
+                <TestTube className="h-5 w-5" />
+                Development Tools
+              </CardTitle>
+              <CardDescription>
+                Quick test upload for admin dashboard verification
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <TestUpload />
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
