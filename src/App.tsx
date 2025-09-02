@@ -22,7 +22,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <BrowserRouter basename={import.meta.env.PROD ? '/echoverse-walls' : '/'}>
         <div className="min-h-screen cosmic-bg">
           <Navigation />
           <Routes>

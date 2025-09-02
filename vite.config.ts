@@ -5,7 +5,7 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => ({
-  base: '/',
+  base: mode === 'production' ? '/echoverse-walls/' : '/',
   server: {
     host: "::",
     port: 8080,
