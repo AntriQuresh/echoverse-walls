@@ -8,6 +8,7 @@ import Explore from "./pages/Explore";
 import Premium from "./pages/Premium";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import UserDashboard from "./pages/UserDashboard";
 import Upload from "./pages/Upload";
 import ProfileSubmission from "./pages/ProfileSubmission";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -30,7 +31,7 @@ const App = () => (
             <Route path="/explore" element={<Explore />} />
             <Route path="/premium" element={<Premium />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard" element={<UserDashboard />} />
             <Route path="/upload" element={<Upload />} />
             <Route path="/profile-submission" element={<ProfileSubmission />} />
             
