@@ -4,6 +4,8 @@ import CategorySection from "@/components/CategorySection";
 import PremiumBanner from "@/components/PremiumBanner";
 
 const Index = () => {
+  console.log('Index page rendering...');
+  
   return (
     <div>
       <Hero />
