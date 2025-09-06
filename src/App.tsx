@@ -12,6 +12,7 @@ import UserDashboard from "./pages/UserDashboard";
 import Upload from "./pages/Upload";
 import ProfileSubmission from "./pages/ProfileSubmission";
 import AdminDashboard from "./pages/AdminDashboard";
+import WallpaperPreview from "./pages/WallpaperPreview";
 import NotFound from "./pages/NotFound";
 import Navigation from "./components/Navigation";
 import Footer from "./components/Footer";
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/dashboard" element={<UserDashboard />} />
             <Route path="/upload" element={<Upload />} />
             <Route path="/profile-submission" element={<ProfileSubmission />} />
+            <Route path="/wallpaper/:id" element={<WallpaperPreview />} />
             
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
