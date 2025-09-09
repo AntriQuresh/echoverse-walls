@@ -41,30 +41,49 @@ const WallpaperCard = ({
     e.preventDefault();
     e.stopPropagation();
     
-    // Create a download link and trigger download
-    const link = document.createElement('a');
-    link.href = image;
-    link.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.jpg`;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      // Handle different image URL formats
+      let downloadUrl = image;
+      
+      // If it's a local asset path, convert to absolute URL
+      if (image.startsWith('/src/assets/')) {
+        downloadUrl = image.replace('/src/assets/', '/src/assets/');
+      }
+      
+      // Create a download link and trigger download
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.jpg`;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Download failed:', error);
+      // Fallback: open image in new tab
+      window.open(image, '_blank');
+    }
   };
 
   const handleShare = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
+    const wallpaperUrl = `${window.location.origin}/wallpaper/${id}`;
+    
     if (navigator.share) {
       navigator.share({
         title: title,
         text: `Check out this amazing wallpaper: ${title}`,
-        url: window.location.href,
+        url: wallpaperUrl,
       });
     } else {
       // Fallback to copying URL to clipboard
-      navigator.clipboard.writeText(window.location.href);
-      // You might want to show a toast here
+      navigator.clipboard.writeText(wallpaperUrl).then(() => {
+        // Could add a toast notification here
+        console.log('Wallpaper URL copied to clipboard');
+      });
     }
   };
 

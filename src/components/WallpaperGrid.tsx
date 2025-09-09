@@ -93,9 +93,11 @@ const WallpaperGrid = ({
   const fetchWallpapers = async () => {
     try {
       setLoading(true);
+      console.log('Fetching wallpapers from database...');
+      
       let query = supabase
         .from('wallpapers')
-        .select('id, title, file_url, category, tags, created_at, status, user_id')
+        .select('id, title, file_url, category, tags, user_id, status, created_at, description')
         .eq('status', 'approved')
         .order('created_at', { ascending: false });
 
@@ -112,29 +114,40 @@ const WallpaperGrid = ({
       }
 
       const { data, error } = await query;
+      
+      console.log('Database query result:', { data, error });
 
       if (error) {
-        console.error('Supabase error:', error);
+        console.error('Database error:', error);
         throw error;
       }
 
       // Use real data if available, otherwise fall back to sample wallpapers
       if (data && data.length > 0) {
-        console.log(`✅ Loaded ${data.length} wallpapers from database`);
+        console.log(`Loaded ${data.length} wallpapers from database`);
         setWallpapers(data);
       } else {
-        console.log('No wallpapers found in database, using fallback data');
+        console.log('No approved wallpapers found, using fallback data');
         // Show fallback data when no real wallpapers exist
         const fallbackData = limit ? fallbackWallpapers.slice(0, limit) : fallbackWallpapers;
         setWallpapers(fallbackData);
       }
     } catch (error) {
       console.error('Error fetching wallpapers:', error);
-      // Don't show error toast, just fall back to sample wallpapers gracefully
-      console.log('Falling back to sample wallpapers due to:', error);
-      // Show fallback data on error
+      console.log('Database connection failed, falling back to sample wallpapers');
+      
+      // Always show fallback data on error to ensure the UI works
       const fallbackData = limit ? fallbackWallpapers.slice(0, limit) : fallbackWallpapers;
       setWallpapers(fallbackData);
+      
+      // Only show toast for non-permission errors
+      if (error.code !== '42501') {
+        toast({
+          title: "Database Connection Issue",
+          description: "Using sample wallpapers. Check your connection.",
+          variant: "default",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -162,10 +175,7 @@ const WallpaperGrid = ({
         {/* Enhanced Wallpaper Grid */}
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="text-center space-y-4">
-              <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-              <p className="text-muted-foreground">Loading amazing wallpapers...</p>
-            </div>
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mb-16">
