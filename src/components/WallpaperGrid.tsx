@@ -95,7 +95,7 @@ const WallpaperGrid = ({
       setLoading(true);
       let query = supabase
         .from('wallpapers')
-        .select('*')
+        .select('id, title, file_url, category, tags, created_at, status, user_id')
         .eq('status', 'approved')
         .order('created_at', { ascending: false });
 
@@ -113,12 +113,17 @@ const WallpaperGrid = ({
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
       // Use real data if available, otherwise fall back to sample wallpapers
       if (data && data.length > 0) {
+        console.log(`✅ Loaded ${data.length} wallpapers from database`);
         setWallpapers(data);
       } else {
+        console.log('No wallpapers found in database, using fallback data');
         // Show fallback data when no real wallpapers exist
         const fallbackData = limit ? fallbackWallpapers.slice(0, limit) : fallbackWallpapers;
         setWallpapers(fallbackData);
@@ -157,7 +162,10 @@ const WallpaperGrid = ({
         {/* Enhanced Wallpaper Grid */}
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="text-center space-y-4">
+              <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
+              <p className="text-muted-foreground">Loading amazing wallpapers...</p>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mb-16">
