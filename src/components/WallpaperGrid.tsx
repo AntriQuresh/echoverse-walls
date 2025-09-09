@@ -125,11 +125,8 @@ const WallpaperGrid = ({
       }
     } catch (error) {
       console.error('Error fetching wallpapers:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load wallpapers",
-        variant: "destructive",
-      });
+      // Don't show error toast, just fall back to sample wallpapers gracefully
+      console.log('Falling back to sample wallpapers due to:', error);
       // Show fallback data on error
       const fallbackData = limit ? fallbackWallpapers.slice(0, limit) : fallbackWallpapers;
       setWallpapers(fallbackData);

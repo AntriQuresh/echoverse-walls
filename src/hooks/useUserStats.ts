@@ -26,17 +26,20 @@ export const useUserStats = () => {
   }, [user]);
 
   const fetchUserStats = async () => {
-    if (!user) return;
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);
       
-      // Get user data from users table
+      // Get user data from users table with better error handling
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('credits, last_claimed')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (userError && userError.code !== 'PGRST116') {
         console.error('Error fetching user data:', userError);
@@ -66,7 +69,7 @@ export const useUserStats = () => {
   };
 
   const claimDailyCredits = async () => {
-    if (!user) return { error: 'User not authenticated' };
+    if (!user?.id) return { error: 'User not authenticated' };
 
     try {
       const now = new Date();
