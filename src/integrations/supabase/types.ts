@@ -14,6 +14,83 @@ export type Database = {
   }
   public: {
     Tables: {
+      downloads: {
+        Row: {
+          created_at: string | null
+          id: string
+          user_id: string | null
+          wallpaper_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          user_id?: string | null
+          wallpaper_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          user_id?: string | null
+          wallpaper_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "downloads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "downloads_wallpaper_id_fkey"
+            columns: ["wallpaper_id"]
+            isOneToOne: false
+            referencedRelation: "wallpapers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profile_submissions: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          id: string
+          links: Json | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          id?: string
+          links?: Json | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          id?: string
+          links?: Json | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_submissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -64,22 +141,31 @@ export type Database = {
       }
       users: {
         Row: {
+          avatar_url: string | null
           credits: number | null
+          display_name: string | null
           email: string
           id: string
           last_claimed: string | null
+          role: string | null
         }
         Insert: {
+          avatar_url?: string | null
           credits?: number | null
+          display_name?: string | null
           email: string
           id?: string
           last_claimed?: string | null
+          role?: string | null
         }
         Update: {
+          avatar_url?: string | null
           credits?: number | null
+          display_name?: string | null
           email?: string
           id?: string
           last_claimed?: string | null
+          role?: string | null
         }
         Relationships: []
       }
@@ -88,6 +174,7 @@ export type Database = {
           category: string
           created_at: string
           description: string | null
+          download_count: number | null
           file_path: string
           file_url: string
           id: string
@@ -102,6 +189,7 @@ export type Database = {
           category: string
           created_at?: string
           description?: string | null
+          download_count?: number | null
           file_path: string
           file_url: string
           id?: string
@@ -116,6 +204,7 @@ export type Database = {
           category?: string
           created_at?: string
           description?: string | null
+          download_count?: number | null
           file_path?: string
           file_url?: string
           id?: string
