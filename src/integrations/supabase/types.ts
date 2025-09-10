@@ -95,6 +95,7 @@ export type Database = {
           tags: string[] | null
           title: string
           updated_at: string
+          uploaded_by: string | null
           user_id: string
         }
         Insert: {
@@ -108,6 +109,7 @@ export type Database = {
           tags?: string[] | null
           title: string
           updated_at?: string
+          uploaded_by?: string | null
           user_id: string
         }
         Update: {
@@ -121,9 +123,18 @@ export type Database = {
           tags?: string[] | null
           title?: string
           updated_at?: string
+          uploaded_by?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "wallpapers_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
