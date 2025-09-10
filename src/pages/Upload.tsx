@@ -108,11 +108,18 @@ const Upload = () => {
       await uploadFile(selectedFile, filePath);
       const imageUrl = getPublicUrl(filePath);
 
+      // Verify user is authenticated
+      const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
+      if (userError || !currentUser) {
+        throw new Error("User not authenticated");
+      }
+
       // Save wallpaper to database
       const { error: dbError } = await supabase
         .from('wallpapers')
         .insert({
-          user_id: user?.id,
+          user_id: currentUser.id,
+          uploaded_by: currentUser.id,  // Set uploaded_by to current user
           title: title.trim(),
           description: description?.trim() || null,
           category: categoryId,

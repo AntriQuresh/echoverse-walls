@@ -36,6 +36,12 @@ const TestUpload = () => {
     try {
       console.log('Creating test wallpaper submission...');
       
+      // Verify user is authenticated
+      const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
+      if (userError || !currentUser) {
+        throw new Error("User not authenticated");
+      }
+      
       // Create a test entry directly in the database (no actual file upload)
       const { data, error } = await supabase
         .from('wallpapers')
@@ -47,7 +53,8 @@ const TestUpload = () => {
           file_url: 'https://images.unsplash.com/photo-1558979158-65a1eaa08691?w=800',
           file_path: 'test/sample-wallpaper.jpg',
           status: 'pending',
-          user_id: user.id
+          user_id: currentUser.id,
+          uploaded_by: currentUser.id  // Set uploaded_by to current user
         })
         .select()
         .single();
